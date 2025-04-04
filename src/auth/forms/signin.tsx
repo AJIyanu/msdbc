@@ -5,6 +5,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { AlertCircle } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
@@ -31,6 +33,11 @@ const formSchema = z.object({
 
 export default function LoginForm() {
   const [loginError, setLoginError] = useState<boolean>(false);
+  const supabase = createClientComponentClient();
+  const router = useRouter();
+  // const searchParams = useSearchParams();
+  const [isLoading, setIsLoading] = useState(false);
+  // const returnUrl = searchParams.get("returnUrl") || "/records";
 
   // Initialize the form with React Hook Form
   const form = useForm<z.infer<typeof formSchema>>({
@@ -44,28 +51,32 @@ export default function LoginForm() {
   // Handle form submission
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      // This is where you would typically make an API call to authenticate
-      // For demonstration, we'll simulate a failed login
-      const success = false; // Change to true to simulate successful login
+      console.log("Form submitted with values:", values);
+      const { error } = await supabase.auth.signInWithPassword({
+        ...values,
+      });
 
-      if (!success) {
-        setLoginError(true);
-        return;
+      if (error) {
+        throw error;
       }
 
-      // Handle successful login (redirect, set auth state, etc.)
-      setLoginError(false);
-      console.log("Login successful", values);
-    } catch (error) {
+      // The middleware will handle the redirect to /records
+      router.refresh();
+    } catch (error: any) {
       setLoginError(true);
-      console.error("Login failed", error);
+      console.error("Login error:", error.message);
+    } finally {
+      setIsLoading(false);
     }
   }
 
   return (
     <div className="mx-auto max-w-md space-y-6 p-6">
       <div className="space-y-2 text-center">
-        <h1 className="text-3xl font-bold">Login</h1>
+        <h1 className="text-3xl font-bold hidden lg:block">Welcome Back</h1>
+        <h1 className="text-3xl font-bold lg:hidden">
+          MSDBC <br /> Church Record
+        </h1>
         <p className="text-gray-500">
           Enter your credentials to access your account
         </p>

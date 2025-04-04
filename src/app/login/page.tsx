@@ -20,13 +20,16 @@ export default function LoginPage() {
           <div className="relative z-10 p-8">
             <div className="flex flex-col items-center justify-center">
               <Image
-                src="/placeholder.svg?height=80&width=240"
+                src="/msdbclogo.webp"
                 alt="Company Logo"
-                width={240}
-                height={80}
+                width={360}
+                height={120}
                 className="mb-4"
               />
-              <h1 className="text-3xl font-bold text-white">Welcome Back</h1>
+              <h1 className="text-2xl font-bold text-white">
+                Message of Salvation and Deliverance Bible Church
+              </h1>
+              <p className="text-2xl text-white font-semibold">Church Record</p>
             </div>
           </div>
         </div>
@@ -43,7 +46,7 @@ export default function LoginPage() {
         <div className="w-full max-w-md bg-white/80 backdrop-blur-md rounded-xl shadow-lg p-6 md:p-8">
           <div className="flex flex-col items-center mb-6">
             <Image
-              src="/placeholder.svg?height=60&width=180"
+              src="/msdbclogo.webp"
               alt="Company Logo"
               width={180}
               height={60}

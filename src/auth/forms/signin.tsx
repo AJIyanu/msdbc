@@ -51,6 +51,7 @@ export default function LoginForm() {
   // Handle form submission
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
+      setIsLoading(true);
       // console.log("Form submitted with values:", values);
       const resp = await supabase.auth.signInWithPassword({
         ...values,

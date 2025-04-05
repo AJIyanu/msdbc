@@ -35,9 +35,9 @@ export default function LoginForm() {
   const [loginError, setLoginError] = useState<boolean>(false);
   const supabase = createClientComponentClient();
   const router = useRouter();
-  // const searchParams = useSearchParams();
+  const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
-  // const returnUrl = searchParams.get("returnUrl") || "/records";
+  const returnUrl = searchParams.get("returnUrl") || "/records";
 
   // Initialize the form with React Hook Form
   const form = useForm<z.infer<typeof formSchema>>({
@@ -51,20 +51,21 @@ export default function LoginForm() {
   // Handle form submission
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      console.log("Form submitted with values:", values);
-      const { error } = await supabase.auth.signInWithPassword({
+      // console.log("Form submitted with values:", values);
+      const resp = await supabase.auth.signInWithPassword({
         ...values,
       });
 
-      if (error) {
-        throw error;
+      // console.log("Login response:", resp.data, resp.error);
+
+      if (resp.error) {
+        throw resp.error;
       }
 
-      // The middleware will handle the redirect to /records
-      router.refresh();
-    } catch (error: any) {
+      router.push(returnUrl);
+    } catch (error) {
+      console.error("Login error:", error);
       setLoginError(true);
-      console.error("Login error:", error.message);
     } finally {
       setIsLoading(false);
     }
@@ -128,7 +129,7 @@ export default function LoginForm() {
               </FormItem>
             )}
           />
-          <Button type="submit" className="w-full">
+          <Button type="submit" className="w-full" disabled={isLoading}>
             Sign In
           </Button>
         </form>

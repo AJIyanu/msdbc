@@ -1,127 +1,64 @@
-import { type NextRequest, NextResponse } from "next/server";
-import { restfulClient } from "./lib/supabase";
+import { NextRequest, NextResponse } from "next/server";
+import { createMiddlewareClient } from "@supabase/auth-helpers-nextjs";
 
-// Define protected routes that require authentication
 const PROTECTED_ROUTES = ["/records", "/dashboard", "/profile", "/settings"];
-// Public routes that don't need authentication checks
 const PUBLIC_ROUTES = [
   "/login",
   "/register",
   "/forgot-password",
   "/reset-password",
 ];
-// Session refresh threshold (in seconds) - refresh if less than 10 minutes remaining
-const REFRESH_THRESHOLD = 10 * 60;
 
-export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+export async function middleware(req: NextRequest) {
+  const { pathname, origin } = req.nextUrl;
 
-  // Skip middleware for static assets and API routes
+  // Skip middleware for static and API routes
   if (
     pathname.startsWith("/_next") ||
     pathname.startsWith("/api") ||
-    pathname.includes(".") // Static files like images, etc.
+    pathname.includes(".")
   ) {
     return NextResponse.next();
   }
 
-  try {
-    // Get the session from the request cookies
-    const supabase = restfulClient;
-    const {
-      data: { session },
-      error: sessionError,
-    } = await supabase.auth.getSession();
+  const res = NextResponse.next();
+  const supabase = createMiddlewareClient({ req, res });
 
-    // Handle session error
-    if (sessionError) {
-      console.error("Session error:", sessionError.message);
-      // Clear any invalid session cookies
-      const response = NextResponse.redirect(new URL("/login", request.url));
-      return response;
-    }
+  // Try to get user
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
 
-    // Check if user is trying to access a protected route without being logged in
-    if (
-      !session &&
-      PROTECTED_ROUTES.some((route) => pathname.startsWith(route))
-    ) {
-      // Redirect to login page with return URL
-      const response = NextResponse.redirect(
-        new URL(`/login?returnUrl=${encodeURIComponent(pathname)}`, request.url)
-      );
-      return response;
-    }
+  // If there's an error fetching user or user is null
+  if (userError || !user) {
+    // Refresh session in case it's just expired
+    const { data: refreshData, error: refreshError } =
+      await supabase.auth.refreshSession();
 
-    // If user is logged in and trying to access login page, redirect to records
-    if (session && pathname === "/login") {
-      const response = NextResponse.redirect(new URL("/records", request.url));
-      return response;
-    }
-
-    // If user is logged in, check if session needs refreshing
-    if (session) {
-      const expiresAt = session.expires_at;
-      const currentTime = Math.floor(Date.now() / 1000); // Current time in seconds
-      const timeRemaining = expiresAt - currentTime;
-
-      // If session is about to expire, refresh it
-      if (timeRemaining < REFRESH_THRESHOLD) {
-        console.log("Refreshing session...");
-        const { data: refreshData, error: refreshError } =
-          await supabase.auth.refreshSession();
-
-        if (refreshError) {
-          console.error("Session refresh error:", refreshError.message);
-          // If refresh fails, redirect to login
-          if (PROTECTED_ROUTES.some((route) => pathname.startsWith(route))) {
-            const response = NextResponse.redirect(
-              new URL("/login", request.url)
-            );
-            return response;
-          }
-        } else {
-          // Session refreshed successfully
-          console.log("Session refreshed successfully");
-          const response = NextResponse.next();
-
-          // Update the session in cookies
-          const {
-            data: { session: newSession },
-          } = refreshData;
-          if (newSession) {
-            // The Supabase client will automatically handle setting the cookies
-            // We just need to ensure the response includes them
-            return response;
-          }
-        }
+    if (refreshError || !refreshData.session) {
+      // Still no valid session, redirect to login if on protected route
+      if (PROTECTED_ROUTES.some((route) => pathname.startsWith(route))) {
+        const redirectUrl = new URL(
+          `/login?returnUrl=${encodeURIComponent(pathname)}`,
+          origin
+        );
+        return NextResponse.redirect(redirectUrl);
       }
+
+      return res;
     }
-
-    // Continue with the request
-    return NextResponse.next();
-  } catch (error) {
-    console.error("Middleware error:", error);
-
-    // For protected routes, redirect to login on error
-    if (PROTECTED_ROUTES.some((route) => pathname.startsWith(route))) {
-      return NextResponse.redirect(new URL("/login", request.url));
-    }
-
-    // For other routes, just continue
-    return NextResponse.next();
   }
+
+  // If user is authenticated and trying to access login/register/forgot pages, redirect to default page
+  if (user && PUBLIC_ROUTES.includes(pathname)) {
+    return NextResponse.redirect(new URL("/records", origin));
+  }
+
+  return res;
 }
 
-// Configure the middleware to run on specific paths
+// Middleware config
 export const config = {
-  matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     */
-    "/((?!_next/static|_next/image|favicon.ico).*)",
-  ],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };

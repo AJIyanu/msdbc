@@ -11,6 +11,8 @@ const PUBLIC_ROUTES = [
 
 export async function middleware(req: NextRequest) {
   const { pathname, origin } = req.nextUrl;
+  const res = NextResponse.next();
+  const supabase = createMiddlewareClient({ req, res });
 
   // Skip middleware for static and API routes
   if (
@@ -21,8 +23,13 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  const res = NextResponse.next();
-  const supabase = createMiddlewareClient({ req, res });
+  if (req.nextUrl.pathname === "/logout") {
+    // Sign out the user
+    await supabase.auth.signOut();
+
+    // Redirect to home or login page
+    return NextResponse.redirect(new URL("/login", req.url));
+  }
 
   // Try to get user
   const {

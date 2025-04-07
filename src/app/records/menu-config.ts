@@ -15,7 +15,7 @@ export const baseMenu = [
     menuItems: [
       {
         menu: "Sunday Service",
-        link: "/records/attendance/sunday-service",
+        link: "/records/sundayattendance",
         icon: "calendar",
         isActive: false,
       },

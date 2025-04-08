@@ -3,32 +3,31 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
 
 import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Switch } from "@/components/ui/switch";
+import Error from "next/error";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { CalendarIcon } from "lucide-react";
 
-// Define the form schema with Zod
 const formSchema = z.object({
   men: z.coerce.number().int().min(0, {
     message: "Number of men must be a positive integer or zero.",
@@ -45,22 +44,8 @@ const formSchema = z.object({
   visitors: z.coerce.number().int().min(0, {
     message: "Number of visitors must be a positive integer or zero.",
   }),
-  sermonByIsVisitor: z.boolean().default(false).optional(),
-  sermonBy: z.string().nullable(),
-  sermonText: z
-    .string()
-    .min(1, {
-      message: "Sermon text/scripture reference is required.",
-    })
-    .max(255, {
-      message:
-        "Sermon text/scripture reference must be less than 255 characters.",
-    }),
-  sermonTopic: z.string().min(1, {
-    message: "Sermon topic is required.",
-  }),
+  date: z.date(),
 });
-
 type FormValues = z.infer<typeof formSchema>;
 
 export default function SundayAttendanceForm() {
@@ -70,10 +55,6 @@ export default function SundayAttendanceForm() {
     supabaseKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   });
 
-  // Mock current user UUID - in a real app, this would come from your auth system
-  const currentUserUuid = "123e4567-e89b-12d3-a456-426614174000";
-
-  // Initialize the form
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -82,67 +63,51 @@ export default function SundayAttendanceForm() {
       boys: 0,
       girls: 0,
       visitors: 0,
-      sermonByIsVisitor: false,
-      sermonBy: "",
-      sermonText: "",
-      sermonTopic: "",
+      date: new Date(),
     },
   });
 
-  // Watch for changes to the sermonByIsVisitor field
-  const sermonByIsVisitor = form.watch("sermonByIsVisitor");
-
-  // When sermonByIsVisitor changes to true, set sermonBy to null
-  useEffect(() => {
-    if (sermonByIsVisitor) {
-      form.setValue("sermonBy", null);
-    }
-  }, [sermonByIsVisitor, form]);
-
-  // Form submission handler
   async function onSubmit(formData: FormValues) {
     try {
       setIsSubmitting(true);
 
-      // Add the automatic fields
       const submissionData = {
         ...formData,
-        // recordedBy: currentUserUuid,
-        createdAt: new Date().toISOString(),
-        // Calculate total attendance
-        // total: data.men + data.women + data.boys + data.girls + data.visitors,
+        created_at: new Date().toISOString(),
       };
 
-      // Here you would typically send the data to your API
-      console.log("Submitting data:", submissionData);
+      // console.log("Submitting data:", submissionData);
 
-      // Simulate API call
       const { data, error } = await supabase
-        .schema('"Church Attendance Record"')
-        .from('"Sunday Service"')
+        .from("sundayserviceattendance")
         .insert(submissionData);
 
-      if (data) {
+      if (!error || data) {
         toast("Attendance recorded successfully", {
           description: "The Sunday attendance record has been saved.",
         });
-        console.log("Data inserted:", data);
+        // console.log("Data inserted:", data);
       } else if (error) {
-        toast("An Error Occurred", {
-          description: error.message,
-        });
-        console.error("Error inserting data:", error);
+        if (error.code === "23505") {
+          toast("Attendance record already exists for this date", {
+            description: "Please try updating the record instead.",
+          });
+        } else {
+          toast("An Error Occurred", {
+            description: error.message,
+          });
+          // console.error("Error inserting data:", error);
+        }
       }
 
-      // Reset the form
       form.reset();
-
-      // Optionally redirect to another page
-      // router.push('/dashboard')
-    } catch (error) {
-      console.error("Error submitting form:", error);
-      toast("Error", {
-        description: "There was a problem saving the attendance record.",
+    } catch (error: unknown | Error) {
+      // console.error("Error submitting form:", error);
+      toast("Error saving attendance Record", {
+        description:
+          error instanceof Error
+            ? (error as unknown as string)
+            : "An unknown error occurred.",
       });
     } finally {
       setIsSubmitting(false);
@@ -219,103 +184,50 @@ export default function SundayAttendanceForm() {
                 </FormItem>
               )}
             />
-          </div>
-
-          <div className="space-y-4">
             <FormField
               control={form.control}
-              name="sermonByIsVisitor"
+              name="date"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                  <div className="space-y-0.5">
-                    <FormLabel>Visitor Speaker</FormLabel>
-                    <FormDescription>
-                      Toggle if the sermon was given by a visitor
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="sermonBy"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Sermon By</FormLabel>
-                  <FormControl>
-                    <Select
-                      disabled={sermonByIsVisitor}
-                      onValueChange={field.onChange}
-                      value={field.value || ""}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select speaker" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="123e4567-e89b-12d3-a456-426614174000">
-                          Pastor John Doe
-                        </SelectItem>
-                        <SelectItem value="223e4567-e89b-12d3-a456-426614174001">
-                          Elder Jane Smith
-                        </SelectItem>
-                        <SelectItem value="323e4567-e89b-12d3-a456-426614174002">
-                          Deacon Michael Johnson
-                        </SelectItem>
-                        <SelectItem value="423e4567-e89b-12d3-a456-426614174003">
-                          Rev. Sarah Williams
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
+                <FormItem className="flex flex-col">
+                  <FormLabel>Date</FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "pl-3 text-left font-normal",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          {field.value ? (
+                            format(field.value, "PPP")
+                          ) : (
+                            <span>Pick a date</span>
+                          )}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value}
+                        onSelect={field.onChange}
+                        disabled={(date) =>
+                          date > new Date() || date < new Date("2025-01-01")
+                        }
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
                   <FormMessage />
                 </FormItem>
               )}
             />
           </div>
 
-          <FormField
-            control={form.control}
-            name="sermonText"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Sermon Text</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter scripture reference" {...field} />
-                </FormControl>
-                <FormDescription>
-                  Enter the scripture reference (e.g., John 3:16)
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="sermonTopic"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Sermon Topic</FormLabel>
-                <FormControl>
-                  <Textarea
-                    placeholder="Enter sermon topic and details"
-                    className="min-h-[100px]"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <div className="flex justify-end">
+          <div className="flex justify-start">
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting ? "Saving..." : "Save Attendance Record"}
             </Button>

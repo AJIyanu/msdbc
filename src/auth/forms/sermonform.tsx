@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -53,19 +54,53 @@ export function SermonForm({
     defaultValues: {
       sermon_exist: true,
       preacher_sign: true,
+      date: new Date(),
     },
   });
 
   const sermonExists = form.watch("sermon_exist");
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(formData: z.infer<typeof formSchema>) {
     setIsPending(true);
     try {
       // If sermon doesn't exist, nullify the sermon fields
-      if (!values.sermon_exist) {
-        values.sermon_title = null;
-        values.sermon_text = null;
+      const submissionData = {
+        ...formData,
+        sermon_title: formData.sermon_exist ? formData.sermon_title : null,
+        sermon_text: formData.sermon_exist ? formData.sermon_text : null,
+        created_at: new Date().toISOString(),
+      };
+
+      const supabase = createClientComponentClient({
+        supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
+        supabaseKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      });
+
+      // console.log("Submitting data:", submissionData);
+
+      const { data, error } = await supabase
+        .from("sundaysermon")
+        .insert(submissionData);
+
+      if (!error || data) {
+        toast("Sermon record submitted successfully", {
+          description: "The Sermon record has been saved.",
+        });
+        // console.log("Data inserted:", data);
+      } else if (error) {
+        if (error.code === "23505") {
+          toast("Sermon Record record already exists for this date", {
+            description: "Please try updating the record instead.",
+          });
+        } else {
+          toast("An Error Occurred", {
+            description: error.message,
+          });
+          // console.error("Error inserting data:", error);
+        }
       }
+
+      form.reset();
     } catch (error) {
       console.error(error);
       toast("Error", {
@@ -150,7 +185,7 @@ export function SermonForm({
               <div className="space-y-0.5">
                 <FormLabel className="text-base">Sermon Exists</FormLabel>
                 <FormDescription>
-                  Toggle if a sermon was delivered on this date
+                  Toggle if a sermon was delivered
                 </FormDescription>
               </div>
               <FormControl>
@@ -170,7 +205,7 @@ export function SermonForm({
             <FormItem>
               <FormLabel>Sermon Title</FormLabel>
               <FormControl>
-                <Input
+                <Textarea
                   placeholder="Enter sermon title"
                   {...field}
                   value={field.value || ""}
@@ -190,7 +225,7 @@ export function SermonForm({
             <FormItem>
               <FormLabel>Sermon Text</FormLabel>
               <FormControl>
-                <Textarea
+                <Input
                   placeholder="Enter sermon text or scripture reference"
                   className="resize-none"
                   {...field}
@@ -212,13 +247,14 @@ export function SermonForm({
               <div className="space-y-0.5">
                 <FormLabel className="text-base">Preacher Signature</FormLabel>
                 <FormDescription>
-                  Indicate if the preacher has signed off on this sermon
+                  Indicate if preacher signed the attendance sheet
                 </FormDescription>
               </div>
               <FormControl>
                 <Switch
                   checked={field.value}
                   onCheckedChange={field.onChange}
+                  disabled
                 />
               </FormControl>
             </FormItem>

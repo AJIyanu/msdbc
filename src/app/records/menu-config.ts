@@ -21,7 +21,7 @@ export const baseMenu = [
       },
       {
         menu: "Sunday School",
-        link: "/records/attendance/sunday-school",
+        link: "/records/sundayschatt",
         icon: "book",
         isActive: false,
       },

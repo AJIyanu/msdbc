@@ -4,6 +4,7 @@ import type React from "react";
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { CalendarIcon, SaveIcon, UserCheckIcon, UsersIcon } from "lucide-react";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 
 import {
   Table,
@@ -38,6 +39,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 // Define types for our data
@@ -50,7 +52,7 @@ type Student = {
 };
 
 type AttendanceRecord = {
-  studentId: number;
+  student_id: number;
   class: string;
   date: string;
 };
@@ -59,6 +61,10 @@ interface AttendanceTableProps {
   students: Student[];
   classes: string[];
 }
+const supabase = createClientComponentClient({
+  supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
+  supabaseKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+});
 
 export default function AttendanceTable({
   students,
@@ -110,7 +116,7 @@ export default function AttendanceTable({
       setAttendanceRecords((prev) => [
         ...prev,
         {
-          studentId: student.id,
+          student_id: student.id,
           class: student.class,
           date: formattedDate,
         },
@@ -118,7 +124,7 @@ export default function AttendanceTable({
     } else {
       // Remove student from attendance records
       setAttendanceRecords((prev) =>
-        prev.filter((record) => record.studentId !== student.id)
+        prev.filter((record) => record.student_id !== student.id)
       );
     }
   };
@@ -130,7 +136,7 @@ export default function AttendanceTable({
   };
 
   // Handle saving attendance records
-  const handleSaveAttendance = () => {
+  const handleSaveAttendance = async () => {
     // In a real application, this would save to a database or API
     const attendanceData = {
       date: formattedDate,
@@ -139,6 +145,21 @@ export default function AttendanceTable({
       totalPresent: totalPresent,
       class: selectedClass !== "all" ? selectedClass : "All Classes",
     };
+
+    const { error } = await supabase
+      .from("sundayschoolattendance")
+      .insert(attendanceRecords);
+
+    if (error) {
+      console.error("Error saving attendance:", error);
+      toast.error("Error saving attendance", {
+        description: "An error occurred while saving attendance records.",
+      });
+    } else {
+      toast.success("Attendance saved successfully", {
+        description: `Attendance for ${attendanceData.class} on ${attendanceData.date} saved successfully.`,
+      });
+    }
 
     console.log("Saving attendance records:", attendanceData);
 
@@ -275,7 +296,7 @@ export default function AttendanceTable({
                         handleStatusChange(checked, student)
                       }
                       checked={attendanceRecords.some(
-                        (record) => record.studentId === student.id
+                        (record) => record.student_id === student.id
                       )}
                     />
                   </div>
@@ -304,14 +325,14 @@ export default function AttendanceTable({
         </Table>
       </CardContent>
 
-      <CardFooter className="flex flex-col items-start">
+      {/* <CardFooter className="flex flex-col items-start">
         <h3 className="text-sm font-semibold mb-2">
           Attendance Records Preview
         </h3>
         <div className="bg-muted p-4 rounded-md overflow-auto max-h-40 w-full text-xs">
           <pre>{JSON.stringify(attendanceRecords, null, 2)}</pre>
         </div>
-      </CardFooter>
+      </CardFooter> */}
     </Card>
   );
 }

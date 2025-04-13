@@ -56,11 +56,11 @@
   --popover-foreground: #1a1a1a;
 
   /* Dominant / Primary color */
-  --primary: #f49238;
+  --primary: #e37714;
   --primary-foreground: #ffffff; /* White text on primary buttons/etc. */
 
   /* Secondary accent */
-  --secondary: #e37714;
+  --secondary: #f49238;
   --secondary-foreground: #ffffff;
 
   /* Muted text can use a neutral shade */
@@ -68,7 +68,7 @@
   --muted-foreground: #1a1a1a;
 
   /* Accent can mirror the primary */
-  --accent: #f49238;
+  --accent: #d47114;
   --accent-foreground: #ffffff;
 
   /* Additional elements */

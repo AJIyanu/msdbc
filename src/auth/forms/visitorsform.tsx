@@ -125,7 +125,7 @@ export default function VisitorsAttendanceForm() {
   }
 
   return (
-    <div className="w-full min-w-2xl mx-auto py-6">
+    <div className="w-full max-w-2xl mx-auto py-6">
       <h2 className="text-2xl font-bold mb-6">Visitor Attendance Form</h2>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -168,7 +168,7 @@ export default function VisitorsAttendanceForm() {
             )}
           />
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-6">
             <FormField
               control={form.control}
               name="firstname"
@@ -185,12 +185,12 @@ export default function VisitorsAttendanceForm() {
 
             <FormField
               control={form.control}
-              name="middlename"
+              name="lastname"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Middle Name (Optional)</FormLabel>
+                  <FormLabel>Last Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="Middle name" {...field} />
+                    <Input placeholder="Last name" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -199,12 +199,12 @@ export default function VisitorsAttendanceForm() {
 
             <FormField
               control={form.control}
-              name="lastname"
+              name="middlename"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Last Name</FormLabel>
+                  <FormLabel>Middle Name (Optional)</FormLabel>
                   <FormControl>
-                    <Input placeholder="Last name" {...field} />
+                    <Input placeholder="Middle name" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

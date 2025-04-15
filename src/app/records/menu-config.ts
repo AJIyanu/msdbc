@@ -27,7 +27,7 @@ export const baseMenu = [
       },
       {
         menu: "Midweek Service",
-        link: "/records/attendance/midweek-service",
+        link: "/records/midweek",
         icon: "clock",
         isActive: false,
       },

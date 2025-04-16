@@ -140,236 +140,231 @@ export function MidweekServiceForm() {
   }
 
   return (
-    <Card className="w-full max-w-2xl mx-auto">
-      <CardHeader>
-        <CardTitle>Record Midweek Service</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+    <div className="max-w-2xl p-6 bg-white">
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <FormField
+            control={form.control}
+            name="title"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Service Title</FormLabel>
+                <FormControl>
+                  <Input placeholder="Bible Study..." {...field} />
+                </FormControl>
+                <FormDescription>
+                  The title or name of the program (optional)
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormField
               control={form.control}
-              name="title"
+              name="date"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Service Title</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter service title" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    The title or name of the program (optional)
-                  </FormDescription>
+                <FormItem className="flex flex-col">
+                  <FormLabel>Service Date</FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-full pl-3 text-left font-normal",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          {field.value ? (
+                            format(field.value, "PPP")
+                          ) : (
+                            <span>Pick a date</span>
+                          )}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value}
+                        onSelect={field.onChange}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <FormField
-                control={form.control}
-                name="date"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>Service Date</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant={"outline"}
-                            className={cn(
-                              "w-full pl-3 text-left font-normal",
-                              !field.value && "text-muted-foreground"
-                            )}
-                          >
-                            {field.value ? (
-                              format(field.value, "PPP")
-                            ) : (
-                              <span>Pick a date</span>
-                            )}
-                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={field.onChange}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="day"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Day of Week</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select day" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="Monday">Monday</SelectItem>
-                        <SelectItem value="Tuesday">Tuesday</SelectItem>
-                        <SelectItem value="Wednesday">Wednesday</SelectItem>
-                        <SelectItem value="Thursday">Thursday</SelectItem>
-                        <SelectItem value="Friday">Friday</SelectItem>
-                        <SelectItem value="Saturday">Saturday</SelectItem>
-                        <SelectItem value="Sunday">Sunday</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
             <FormField
               control={form.control}
-              name="anchor"
+              name="day"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Anchor</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter anchor name" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    The name of who anchored the program
-                  </FormDescription>
+                  <FormLabel>Day of Week</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select day" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Monday">Monday</SelectItem>
+                      <SelectItem value="Tuesday">Tuesday</SelectItem>
+                      <SelectItem value="Wednesday">Wednesday</SelectItem>
+                      <SelectItem value="Thursday">Thursday</SelectItem>
+                      <SelectItem value="Friday">Friday</SelectItem>
+                      <SelectItem value="Saturday">Saturday</SelectItem>
+                      <SelectItem value="Sunday">Sunday</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <FormField
+            control={form.control}
+            name="anchor"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Anchor</FormLabel>
+                <FormControl>
+                  <Input placeholder="Pastor..." {...field} />
+                </FormControl>
+                <FormDescription>
+                  The name of who anchored the program
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <FormField
+              control={form.control}
+              name="time_started"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Time Started</FormLabel>
+                  <div className="flex items-center">
+                    <FormControl>
+                      <Input type="time" placeholder="HH:MM" {...field} />
+                    </FormControl>
+                    <Clock className="ml-2 h-4 w-4 opacity-50" />
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <FormField
-                control={form.control}
-                name="time_started"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Time Started</FormLabel>
-                    <div className="flex items-center">
-                      <FormControl>
-                        <Input type="time" placeholder="HH:MM" {...field} />
-                      </FormControl>
-                      <Clock className="ml-2 h-4 w-4 opacity-50" />
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="time_ended"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Time Ended</FormLabel>
-                    <div className="flex items-center">
-                      <FormControl>
-                        <Input type="time" placeholder="HH:MM" {...field} />
-                      </FormControl>
-                      <Clock className="ml-2 h-4 w-4 opacity-50" />
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <FormField
-                control={form.control}
-                name="first_offering"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>First Offering</FormLabel>
+            <FormField
+              control={form.control}
+              name="time_ended"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Time Ended</FormLabel>
+                  <div className="flex items-center">
                     <FormControl>
-                      <Input
-                        type="number"
-                        min="0"
-                        {...field}
-                        onChange={(e) => {
-                          field.onChange(e.target.valueAsNumber || 0);
-                        }}
-                      />
+                      <Input type="time" placeholder="HH:MM" {...field} />
                     </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                    <Clock className="ml-2 h-4 w-4 opacity-50" />
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
 
-              <FormField
-                control={form.control}
-                name="second_offering"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Second Offering</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        min="0"
-                        {...field}
-                        onChange={(e) => {
-                          field.onChange(e.target.valueAsNumber || 0);
-                        }}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <FormField
+              control={form.control}
+              name="first_offering"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>First Offering</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      min="0"
+                      {...field}
+                      onChange={(e) => {
+                        field.onChange(e.target.valueAsNumber || 0);
+                      }}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-              <FormField
-                control={form.control}
-                name="third_offering"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Third Offering</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        min="0"
-                        {...field}
-                        onChange={(e) => {
-                          field.onChange(e.target.valueAsNumber || 0);
-                        }}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            <FormField
+              control={form.control}
+              name="second_offering"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Second Offering</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      min="0"
+                      {...field}
+                      onChange={(e) => {
+                        field.onChange(e.target.valueAsNumber || 0);
+                      }}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="third_offering"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Third Offering</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      min="0"
+                      {...field}
+                      onChange={(e) => {
+                        field.onChange(e.target.valueAsNumber || 0);
+                      }}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="bg-muted p-4 rounded-lg">
+            <div className="flex justify-between items-center">
+              <span className="font-semibold">Total Offering:</span>
+              <span className="text-xl font-bold">{total}</span>
             </div>
+            <p className="text-sm text-muted-foreground mt-1">
+              This total is calculated automatically and will be stored by the
+              database.
+            </p>
+          </div>
 
-            <div className="bg-muted p-4 rounded-lg">
-              <div className="flex justify-between items-center">
-                <span className="font-semibold">Total Offering:</span>
-                <span className="text-xl font-bold">{total}</span>
-              </div>
-              <p className="text-sm text-muted-foreground mt-1">
-                This total is calculated automatically and will be stored by the
-                database.
-              </p>
-            </div>
-
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? "Saving..." : "Save Service Record"}
-            </Button>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+          <Button type="submit" className="w-full" disabled={isSubmitting}>
+            {isSubmitting ? "Saving..." : "Save Service Record"}
+          </Button>
+        </form>
+      </Form>
+    </div>
   );
 }

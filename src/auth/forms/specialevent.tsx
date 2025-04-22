@@ -32,7 +32,7 @@ import { Card, CardContent } from "@/components/ui/card";
 // Define the Zod schema for form validation
 const offeringSchema = z.object({
   offeringTitle: z.string(),
-  offeringAmount: z.number().min(0, "Amount must be a positive number"),
+  offeringAmount: z.coerce.number().min(0, "Amount must be a positive number"),
 });
 
 const formSchema = z.object({
@@ -82,10 +82,11 @@ export function SpecialEventForm() {
 
   // Calculate total attendance
   const calculateTotalAttendance = () => {
-    const men = form.watch("men") || 0;
-    const women = form.watch("women") || 0;
-    const boys = form.watch("boys") || 0;
-    const girls = form.watch("girls") || 0;
+    const men = Number(form.watch("men")) || 0;
+    const women = Number(form.watch("women")) || 0;
+    const boys = Number(form.watch("boys")) || 0;
+    const girls = Number(form.watch("girls")) || 0;
+
     return men + women + boys + girls;
   };
 
@@ -93,7 +94,7 @@ export function SpecialEventForm() {
   const calculateTotalOffering = () => {
     const offerings = form.watch("offerings") || [];
     return offerings.reduce(
-      (total, offering) => total + (offering.offeringAmount || 0),
+      (total, offering) => total + (Number(offering.offeringAmount) || 0),
       0
     );
   };
@@ -122,7 +123,7 @@ export function SpecialEventForm() {
         women: data.women,
         boys: data.boys,
         girls: data.girls,
-        total: total,
+        // total: total,
         preacher: data.preacher || null,
         offering_total: offeringTotal,
         offering_breakdown: offeringBreakdown,

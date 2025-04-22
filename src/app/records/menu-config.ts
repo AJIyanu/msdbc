@@ -33,7 +33,7 @@ export const baseMenu = [
       },
       {
         menu: "Special Events",
-        link: "/records/attendance/special-events",
+        link: "/records/special",
         icon: "star",
         isActive: false,
       },

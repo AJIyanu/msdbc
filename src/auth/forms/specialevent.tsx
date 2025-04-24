@@ -105,7 +105,7 @@ export function SpecialEventForm() {
       setIsSubmitting(true);
 
       // Calculate totals
-      const total = calculateTotalAttendance();
+      // const total = calculateTotalAttendance();
       const offeringTotal = calculateTotalOffering();
 
       // Prepare offering breakdown JSON
@@ -137,8 +137,7 @@ export function SpecialEventForm() {
         description: "Your special event has been successfully recorded.",
       });
 
-      router.push("/special-events");
-      router.refresh();
+      form.reset();
     } catch (error) {
       console.error("Error submitting form:", error);
       toast.error("Error", {

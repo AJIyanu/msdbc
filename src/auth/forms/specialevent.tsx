@@ -6,7 +6,6 @@ import { useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 import { CalendarIcon, Plus, Trash2 } from "lucide-react";
 import { format } from "date-fns";
-import { useRouter } from "next/navigation";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 
 import { Button } from "@/components/ui/button";
@@ -55,7 +54,6 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 export function SpecialEventForm() {
-  const router = useRouter();
   const supabase = createClientComponentClient({
     supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
     supabaseKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,

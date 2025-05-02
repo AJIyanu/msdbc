@@ -68,7 +68,7 @@ export const baseMenu = [
       },
       {
         menu: "Sunday School Offering",
-        link: "/records/financials/sunday-school-offering",
+        link: "/records/sundayschoffering",
         icon: "school",
         isActive: false,
       },

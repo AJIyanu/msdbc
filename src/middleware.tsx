@@ -29,6 +29,8 @@ export async function middleware(req: NextRequest) {
 
     // Redirect to home or login page
     return NextResponse.redirect(new URL("/login", req.url));
+  } else if (req.nextUrl.pathname === "/") {
+    return NextResponse.redirect(new URL("/login", req.url));
   }
 
   // Try to get user

@@ -34,7 +34,6 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 // Initialize Supabase client
 const supabase = createClientComponentClient({

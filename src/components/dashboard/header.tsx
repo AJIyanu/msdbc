@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { Bell, Search } from "lucide-react";
 
 import { Input } from "@/components/ui/input";

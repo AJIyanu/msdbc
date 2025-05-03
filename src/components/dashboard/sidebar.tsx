@@ -114,14 +114,14 @@ export function DashboardSidebar({ menuConfig }: DashboardSidebarProps) {
       <SidebarContent>
         <Separator className="mx-3" />
 
-        {menuState.map((group, groupIndex) => (
+        {menuState.map((group) => (
           <SidebarGroup key={group.groupName}>
             {group.groupName && (
               <SidebarGroupLabel>{group.groupName}</SidebarGroupLabel>
             )}
             <SidebarGroupContent>
               <SidebarMenu>
-                {group.menuItems.map((item, itemIndex) => (
+                {group.menuItems.map((item) => (
                   <SidebarMenuItem key={item.menu}>
                     <SidebarMenuButton
                       asChild

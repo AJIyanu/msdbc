@@ -48,6 +48,7 @@ const students = [
 ];
 
 // Extract unique classes for the filter dropdown
+export const dynamic = "force-dynamic";
 
 export default async function AttendancePage() {
   const { data, error } = await supabase

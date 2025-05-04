@@ -56,13 +56,13 @@ export const baseMenu = [
       },
       {
         menu: "Building Fund",
-        link: "/records/financials/building-fund",
+        link: "/records/developmentfund",
         icon: "piggy-bank",
         isActive: false,
       },
       {
         menu: "Sunday Offering",
-        link: "/records/financials/sunday-offering",
+        link: "/records/sundayoffering",
         icon: "wallet",
         isActive: false,
       },

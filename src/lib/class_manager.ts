@@ -1,30 +1,21 @@
 "use server";
 
-import fs from "fs/promises";
-import path from "path";
+import { Redis } from "@upstash/redis";
 
-const classesFilePath = path.join(process.cwd(), "data", "classes.json");
+// Initialize Redis with Vercel KV credentials
+const redis = new Redis({
+  url: process.env.KV_REST_API_URL!,
+  token: process.env.KV_REST_API_TOKEN!,
+});
 
-// Ensure the data directory exists
-async function ensureDirectoryExists() {
-  const dir = path.dirname(classesFilePath);
-  try {
-    await fs.access(dir);
-  } catch {
-    // console.error("Directory does not exist, ", error);
-    await fs.mkdir(dir, { recursive: true });
-  }
-}
+const CLASSES_KEY = "classes";
 
-// Get classes from file
+// Get classes from Redis
 export async function getClassesFromFile(): Promise<string[]> {
-  await ensureDirectoryExists();
-
   try {
-    // Check if file exists
-    try {
-      await fs.access(classesFilePath);
-    } catch {
+    const classes = await redis.get<string[]>(CLASSES_KEY);
+
+    if (!classes) {
       const defaultClasses = [
         "Beginners",
         "Primary",
@@ -33,77 +24,39 @@ export async function getClassesFromFile(): Promise<string[]> {
         "Youth",
         "Adult",
       ];
-      await fs.writeFile(
-        classesFilePath,
-        JSON.stringify(defaultClasses, null, 2)
-      );
+      await redis.set(CLASSES_KEY, defaultClasses);
       return defaultClasses;
     }
 
-    // Read file
-    const data = await fs.readFile(classesFilePath, "utf-8");
-    return JSON.parse(data);
-  } catch {
-    // console.error("Error reading classes file:", error);
-    throw new Error("Failed to read classes from file");
+    return classes;
+  } catch (error) {
+    throw new Error("Failed to read classes from KV storage");
   }
 }
 
-// Add class to file
+// Add class to Redis
 export async function addClassToFile(className: string): Promise<void> {
-  await ensureDirectoryExists();
-
   try {
-    let classes: string[] = [];
+    const classes = (await redis.get<string[]>(CLASSES_KEY)) || [];
 
-    // Check if file exists
-    try {
-      await fs.access(classesFilePath);
-      const data = await fs.readFile(classesFilePath, "utf-8");
-      classes = JSON.parse(data);
-    } catch {
-      // If file doesn't exist, create an empty array
-      classes = [];
-    }
-
-    // Add class if it doesn't already exist
     if (!classes.includes(className)) {
       classes.push(className);
-      await fs.writeFile(classesFilePath, JSON.stringify(classes, null, 2));
+      await redis.set(CLASSES_KEY, classes);
     }
-  } catch {
-    // console.error("Error adding class to file:", error);
-    throw new Error("Failed to add class to file");
+  } catch (error) {
+    throw new Error("Failed to add class to KV storage");
   }
 }
 
-// Remove class from file
+// Remove class from Redis
 export async function removeClassFromFile(className: string): Promise<void> {
-  await ensureDirectoryExists();
-
   try {
-    // Check if file exists
-    try {
-      await fs.access(classesFilePath);
-    } catch {
-      // If file doesn't exist, nothing to remove
-      return;
-    }
+    const classes = await redis.get<string[]>(CLASSES_KEY);
+    if (!classes) return;
 
-    // Read file
-    const data = await fs.readFile(classesFilePath, "utf-8");
-    const classes: string[] = JSON.parse(data);
-
-    // Remove class
     const updatedClasses = classes.filter((c) => c !== className);
-
-    // Write updated classes back to file
-    await fs.writeFile(
-      classesFilePath,
-      JSON.stringify(updatedClasses, null, 2)
-    );
-  } catch {
-    // console.error("Error removing class from file:", error);
-    throw new Error("Failed to remove class from file");
+    await redis.set(CLASSES_KEY, updatedClasses);
+  } catch (error) {
+    throw new Error("Failed to remove class from KV storage");
   }
 }

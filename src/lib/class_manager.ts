@@ -29,7 +29,7 @@ export async function getClassesFromFile(): Promise<string[]> {
     }
 
     return classes;
-  } catch (error) {
+  } catch {
     throw new Error("Failed to read classes from KV storage");
   }
 }
@@ -43,7 +43,7 @@ export async function addClassToFile(className: string): Promise<void> {
       classes.push(className);
       await redis.set(CLASSES_KEY, classes);
     }
-  } catch (error) {
+  } catch {
     throw new Error("Failed to add class to KV storage");
   }
 }
@@ -56,7 +56,7 @@ export async function removeClassFromFile(className: string): Promise<void> {
 
     const updatedClasses = classes.filter((c) => c !== className);
     await redis.set(CLASSES_KEY, updatedClasses);
-  } catch (error) {
+  } catch {
     throw new Error("Failed to remove class from KV storage");
   }
 }

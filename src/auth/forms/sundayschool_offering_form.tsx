@@ -157,7 +157,7 @@ export default function SundaySchoolOfferingForm() {
     const newClassName = `New Class ${offerings.length + 1}`;
 
     try {
-      await addClassToFile(newClassName);
+      // await addClassToFile(newClassName);
       setOfferings((prev) => [
         ...prev,
         { id: newId, class: newClassName, amount: 0, isEditing: true },
@@ -176,7 +176,7 @@ export default function SundaySchoolOfferingForm() {
 
   // Update class name
   const updateClassName = async (
-    id: string,
+    // id: string,
     oldName: string,
     newName: string
   ) => {
@@ -347,7 +347,7 @@ export default function SundaySchoolOfferingForm() {
                           const oldName =
                             classes.find((c) => c === item.class) || "";
                           const newName = item.class;
-                          updateClassName(item.id, oldName, newName);
+                          updateClassName(oldName, newName);
                           toggleEdit(item.id);
                         }}
                       >

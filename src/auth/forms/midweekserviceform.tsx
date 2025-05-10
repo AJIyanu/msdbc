@@ -58,6 +58,10 @@ const formSchema = z.object({
   first_offering: z.number(),
   second_offering: z.number(),
   third_offering: z.number(),
+  men: z.number(),
+  women: z.number(),
+  girls: z.number(),
+  boys: z.number(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -65,6 +69,7 @@ type FormValues = z.infer<typeof formSchema>;
 export function MidweekServiceForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [total, setTotal] = useState(0);
+  const [attendanceTotal, setAttendanceTotal] = useState(0);
 
   // Initialize the form
   const form = useForm<FormValues>({
@@ -73,11 +78,15 @@ export function MidweekServiceForm() {
       title: "",
       day: "Monday",
       anchor: "",
-      time_started: "18:00", // Default to 6pm
-      time_ended: "19:00", // Default to 7pm
-      first_offering: 0, // Ensure this is a number
-      second_offering: 0, // Ensure this is a number
-      third_offering: 0, // Ensure this is a number
+      time_started: "18:00",
+      time_ended: "19:00",
+      first_offering: 0,
+      second_offering: 0,
+      third_offering: 0,
+      men: 0,
+      women: 0,
+      girls: 0,
+      boys: 0,
     },
   });
 
@@ -86,10 +95,20 @@ export function MidweekServiceForm() {
   const secondOffering = form.watch("second_offering") || 0;
   const thirdOffering = form.watch("third_offering") || 0;
 
+  // Watch the attendance fields to calculate total
+  const men = form.watch("men") || 0;
+  const women = form.watch("women") || 0;
+  const girls = form.watch("girls") || 0;
+  const boys = form.watch("boys") || 0;
+
   // Calculate total whenever offerings change
   useEffect(() => {
     setTotal(firstOffering + secondOffering + thirdOffering);
   }, [firstOffering, secondOffering, thirdOffering]);
+
+  useEffect(() => {
+    setAttendanceTotal(men + women + girls + boys);
+  }, [men, women, girls, boys]);
 
   // Handle form submission
   async function onSubmit(data: FormValues) {
@@ -127,6 +146,10 @@ export function MidweekServiceForm() {
         first_offering: 0,
         second_offering: 0,
         third_offering: 0,
+        men: 0,
+        women: 0,
+        girls: 0,
+        boys: 0,
       });
     } catch (error) {
       console.error("Error submitting form:", error);
@@ -281,6 +304,104 @@ export function MidweekServiceForm() {
                 </FormItem>
               )}
             />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <FormField
+              control={form.control}
+              name="men"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Men</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      min="0"
+                      {...field}
+                      onChange={(e) => {
+                        field.onChange(e.target.valueAsNumber || 0);
+                      }}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="women"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Women</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      min="0"
+                      {...field}
+                      onChange={(e) => {
+                        field.onChange(e.target.valueAsNumber || 0);
+                      }}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="girls"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Girls</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      min="0"
+                      {...field}
+                      onChange={(e) => {
+                        field.onChange(e.target.valueAsNumber || 0);
+                      }}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="boys"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Boys</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      min="0"
+                      {...field}
+                      onChange={(e) => {
+                        field.onChange(e.target.valueAsNumber || 0);
+                      }}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          {/* Display attendance total */}
+          <div className="bg-muted p-4 rounded-lg">
+            <div className="flex justify-between items-center">
+              <span className="font-semibold">Total Attendance:</span>
+              <span className="text-xl font-bold">{attendanceTotal}</span>
+            </div>
+            <p className="text-sm text-muted-foreground mt-1">
+              This total is calculated automatically and will be stored by the
+              database.
+            </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

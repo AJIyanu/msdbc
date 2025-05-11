@@ -28,8 +28,9 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { toast } from "sonner";
+import PreacherAutoComplete from "./searchpreacher";
 
-const formSchema = z.object({
+export const formSchema = z.object({
   date: z.date({
     required_error: "Sermon date is required",
   }),
@@ -153,7 +154,7 @@ export function SermonForm({
           )}
         />
 
-        <FormField
+        {/* <FormField
           control={form.control}
           name="preacherId"
           render={({ field }) => (
@@ -174,6 +175,14 @@ export function SermonForm({
               </FormControl>
               <FormMessage />
             </FormItem>
+          )}
+        /> */}
+
+        <FormField
+          control={form.control}
+          name="preacherId"
+          render={() => (
+            <PreacherAutoComplete form={form} preachers={preachers} />
           )}
         />
 

@@ -53,6 +53,25 @@ interface AddStudentFormProps {
   onSuccess?: () => void;
 }
 
+function formatName(name: string | undefined): string {
+  if (!name) {
+    return "";
+  }
+
+  // Trim leading and trailing whitespace
+  const trimmedName = name.trim();
+
+  if (trimmedName === "") {
+    return "";
+  }
+
+  // Capitalize the first letter and lowercase the rest
+  const capitalizedName =
+    trimmedName.charAt(0).toUpperCase() + trimmedName.slice(1).toLowerCase();
+
+  return capitalizedName;
+}
+
 export default function AddStudentForm({ onSuccess }: AddStudentFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -82,6 +101,10 @@ export default function AddStudentForm({ onSuccess }: AddStudentFormProps) {
 
       const formData = {
         ...studentData,
+        surname: formatName(studentData.surname),
+        firstname: formatName(studentData.firstname),
+        middlename: formatName(studentData.middlename),
+        class: formatName(studentData.class),
         male: studentData.sex === "male",
       };
 

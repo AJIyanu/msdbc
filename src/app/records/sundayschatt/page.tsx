@@ -59,7 +59,14 @@ export default async function AttendancePage() {
     console.error("Error fetching students:", error);
     return <div>Error loading students. Please try again later.</div>;
   }
-  const classes = Array.from(new Set(data.map((student) => student.class)));
+
+  const classes = Array.from(
+    new Set(
+      data
+        .map((student) => student.class)
+        .filter((className) => className && className.trim() !== "")
+    )
+  );
 
   return (
     <main className="container mx-auto py-8 px-4">

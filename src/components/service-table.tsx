@@ -8,6 +8,9 @@ import {
 } from "@/components/ui/table";
 import { ServiceDetailsModal } from "./service-details-modal";
 import { Pagination } from "./pagination";
+import { Button } from "./ui/button";
+import { Edit, Trash2 } from "lucide-react";
+import { deleteItem } from "./service-details-modal";
 
 interface Service {
   id: string;
@@ -78,7 +81,7 @@ export function ServiceTable({
       {/* Desktop View */}
       <div className="hidden lg:block">
         <Table>
-          <TableHeader>
+          <TableHeader className="bg-primary">
             <TableRow>
               <TableHead>Date</TableHead>
               <TableHead>Title</TableHead>
@@ -91,6 +94,7 @@ export function ServiceTable({
               <TableHead>Girls</TableHead>
               <TableHead>Total</TableHead>
               <TableHead>Total Offering</TableHead>
+              <TableHead>Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -113,6 +117,18 @@ export function ServiceTable({
                 <TableCell className="font-semibold">
                   {formatCurrency(service.total)}
                 </TableCell>
+                <TableCell>
+                  <Button variant="outline">
+                    <Edit />
+                  </Button>
+                  <Button
+                    className="ml-2"
+                    variant="outline"
+                    onClick={() => deleteItem(service.id)}
+                  >
+                    <Trash2 />
+                  </Button>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -122,7 +138,7 @@ export function ServiceTable({
       {/* Tablet View */}
       <div className="hidden md:block lg:hidden">
         <Table>
-          <TableHeader>
+          <TableHeader className="bg-primary">
             <TableRow>
               <TableHead>Date</TableHead>
               <TableHead>Title</TableHead>
@@ -162,7 +178,7 @@ export function ServiceTable({
       {/* Mobile View */}
       <div className="block md:hidden">
         <Table>
-          <TableHeader>
+          <TableHeader className="bg-primary">
             <TableRow>
               <TableHead>Date</TableHead>
               <TableHead>Title</TableHead>

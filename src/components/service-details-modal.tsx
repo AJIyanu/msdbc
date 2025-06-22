@@ -6,7 +6,9 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Eye } from "lucide-react";
+import { Edit2, Eye, Trash2 } from "lucide-react";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { toast } from "sonner";
 
 interface Service {
   id: string;
@@ -33,6 +35,11 @@ interface ServiceDetailsModalProps {
   variant?: "desktop" | "tablet" | "mobile";
 }
 
+const supabase = createClientComponentClient({
+  supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
+  supabaseKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+});
+
 function formatDate(dateString: string) {
   return new Date(dateString).toLocaleDateString("en-US", {
     year: "numeric",
@@ -57,6 +64,30 @@ function formatCurrency(amount: number) {
     maximumFractionDigits: 0,
   }).format(amount);
 }
+
+export const deleteItem = async (id: string) => {
+  console.log("Deleting item with ID:", id);
+
+  // toast.success(`Deleted service ID ${id} successfully.`);
+  try {
+    const { data, error } = await supabase
+      .from("midweekservice")
+      .delete()
+      .eq("id", id)
+      .select();
+
+    if (error) {
+      throw new Error(`Error deleting item: ${error.message}`);
+    } else {
+      console.log("Deleted response data:", data);
+      toast.success(`Deleted service ID ${id} successfully.`);
+      window.location.reload();
+    }
+  } catch (error) {
+    toast.error(`Error Deleting service ID ${id}.`);
+    console.error("Error deleting item:", error);
+  }
+};
 
 function ServiceDetails({ service }: { service: Service }) {
   return (
@@ -253,6 +284,28 @@ function ServiceDetails({ service }: { service: Service }) {
                 {new Date(service.created_at).toLocaleString()}
               </span>
             </div>
+          </div>
+        </div>
+
+        {/* Data Actions */}
+        <div className="bg-gray-50 p-4 rounded-lg">
+          <h4 className="font-semibold text-base text-gray-800 mb-3">
+            Actions
+          </h4>
+          <div className="flex justify-center space-x-4">
+            <Button variant="outline" size="sm">
+              <Edit2 />
+              Edit Service
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              className="ml-2"
+              onClick={() => deleteItem(service.id)}
+            >
+              <Trash2 />
+              Delete Service
+            </Button>
           </div>
         </div>
       </div>

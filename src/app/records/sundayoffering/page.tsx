@@ -1,4 +1,4 @@
-import { SundayOfferingForm } from "@/auth/forms/sundayifferingform";
+import { SundayOfferingForm } from "@/auth/forms/sundayofferingform";
 
 export default function OfferingPage() {
   return (

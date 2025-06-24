@@ -14,8 +14,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { PlusCircle } from "lucide-react";
+import { ListChecks, PlusCircle } from "lucide-react";
 import SundaySchoolVisitorForm from "@/auth/forms/addvisitors";
+import Link from "next/link";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
@@ -98,6 +99,12 @@ export default async function AttendancePage() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+          <Link href="/records/sundayschatt/preview" className="me-6">
+            <Button className="flex items-center gap-2">
+              <ListChecks className="h-4 w-4" />
+              Attendance Record
+            </Button>
+          </Link>
           <Dialog>
             <DialogTrigger asChild>
               <Button className="flex items-center gap-2">

@@ -27,7 +27,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-// import { createClient } from "@supabase/supabase-js";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 
 // Initialize Supabase client
@@ -41,7 +40,7 @@ interface AttendanceRecord {
   name: string;
   class: string;
   totalPresent: number;
-  [key: string]: string | number | boolean; // For dynamic date properties
+  [key: string]: string | number | boolean;
 }
 
 interface AttendanceData {
@@ -54,33 +53,36 @@ interface AttendanceData {
   };
 }
 
+const getCurrentQuarter = () => {
+  const currentMonth = new Date().getMonth();
+  if (currentMonth >= 8 && currentMonth <= 10) return "First";
+  if (currentMonth === 11 || currentMonth <= 1) return "Second";
+  if (currentMonth >= 2 && currentMonth <= 4) return "Third";
+  return "Fourth";
+};
+
 export default function AttendancePage() {
   const [attendanceData, setAttendanceData] = useState<AttendanceData | null>(
     null
   );
+  const [allAttendanceRecord, setAllAttendanceRecord] =
+    useState<AttendanceData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [classOptions, setClassOptions] = useState<string[]>(["All"]);
+  const [selectedClass, setSelectedClass] = useState<string>("All");
   const [selectedYear, setSelectedYear] = useState<string>(
     new Date().getFullYear().toString()
   );
-  const [selectedQuarter, setSelectedQuarter] = useState<string>("First");
+  const [selectedQuarter, setSelectedQuarter] = useState<string>(
+    getCurrentQuarter()
+  );
 
   const fetchAttendanceData = async (year?: string, quarter?: string) => {
     try {
       setLoading(true);
       setError(null);
 
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Use mock data with simulated filtering
-      //   const filteredData = getMockDataForPeriod(
-      //     year || selectedYear,
-      //     quarter || selectedQuarter
-      //   );
-      //   setAttendanceData(filteredData);
-
-      // Comment out Supabase function call - when ready to use real API:
       const { data, error: functionError } = await supabase.functions.invoke(
         "structuredattendance",
         {
@@ -97,7 +99,13 @@ export default function AttendancePage() {
         throw new Error("No data received from the function");
       }
       setAttendanceData(data);
-      console.log("Attendance data fetched:", data);
+      setAllAttendanceRecord(data);
+      // console.log("Attendance data fetched:", data);
+      const uniqueClasses: string[] = Array.from(
+        new Set(data.records.map((record: AttendanceRecord) => record.class))
+      );
+
+      setClassOptions(["All", ...uniqueClasses]);
     } catch (err) {
       console.error("Error fetching attendance data:", err);
       setError(
@@ -115,6 +123,29 @@ export default function AttendancePage() {
   const handleYearChange = (year: string) => {
     setSelectedYear(year);
     fetchAttendanceData(year, selectedQuarter);
+  };
+
+  const handleClassChange = (value: string) => {
+    setSelectedClass(value);
+
+    if (value === "All") {
+      setAttendanceData(allAttendanceRecord);
+    } else {
+      const filteredRecords: AttendanceRecord[] =
+        allAttendanceRecord?.records.filter(
+          (record) => record.class === value
+        ) || [];
+
+      if (filteredRecords) {
+        // setAttendanceData(null);
+        const updatedData: AttendanceData = {
+          ...attendanceData!,
+          records: filteredRecords,
+        };
+
+        setAttendanceData(updatedData);
+      }
+    }
   };
 
   const handleQuarterChange = (quarter: string) => {
@@ -212,22 +243,16 @@ export default function AttendancePage() {
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex flex-col space-y-2">
         <h1 className="text-3xl font-bold tracking-tight">Attendance Record</h1>
-        <p className="text-muted-foreground">
-          Track student attendance across all classes and dates
-        </p>
       </div>
 
       {/* Filter Controls */}
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">Filter Options</CardTitle>
-          <CardDescription>
-            Select year and quarter to view attendance data
-          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
+            <div className="flex-col w-[150px]">
               <label
                 htmlFor="year-select"
                 className="block text-sm font-medium mb-2"
@@ -235,7 +260,7 @@ export default function AttendancePage() {
                 Year
               </label>
               <Select value={selectedYear} onValueChange={handleYearChange}>
-                <SelectTrigger id="year-select">
+                <SelectTrigger id="year-select" className="w-full">
                   <SelectValue placeholder="Select year" />
                 </SelectTrigger>
                 <SelectContent>
@@ -247,7 +272,7 @@ export default function AttendancePage() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex-1">
+            <div className="flex-col w-[150px]">
               <label
                 htmlFor="quarter-select"
                 className="block text-sm font-medium mb-2"
@@ -258,7 +283,7 @@ export default function AttendancePage() {
                 value={selectedQuarter}
                 onValueChange={handleQuarterChange}
               >
-                <SelectTrigger id="quarter-select">
+                <SelectTrigger id="quarter-select" className="w-full">
                   <SelectValue placeholder="Select quarter" />
                 </SelectTrigger>
                 <SelectContent>
@@ -266,6 +291,26 @@ export default function AttendancePage() {
                   <SelectItem value="Second">Second Quarter</SelectItem>
                   <SelectItem value="Third">Third Quarter</SelectItem>
                   <SelectItem value="Fourth">Fourth Quarter</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex-col w-[150px]">
+              <label
+                htmlFor="student-class-select"
+                className="block text-sm font-medium mb-2"
+              >
+                Class
+              </label>
+              <Select value={selectedClass} onValueChange={handleClassChange}>
+                <SelectTrigger id="class-select" className="w-full">
+                  <SelectValue placeholder="Select class" />
+                </SelectTrigger>
+                <SelectContent>
+                  {classOptions.map((cls) => (
+                    <SelectItem key={cls} value={cls}>
+                      {cls}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

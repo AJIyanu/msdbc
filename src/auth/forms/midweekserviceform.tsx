@@ -66,7 +66,15 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-export function MidweekServiceForm() {
+interface MidweekServiceFormProps {
+  initialData?: Partial<FormValues>;
+  userID?: string;
+}
+
+export function MidweekServiceForm({
+  initialData,
+  userID,
+}: MidweekServiceFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [total, setTotal] = useState(0);
   const [attendanceTotal, setAttendanceTotal] = useState(0);
@@ -87,6 +95,7 @@ export function MidweekServiceForm() {
       women: 0,
       girls: 0,
       boys: 0,
+      ...initialData,
     },
   });
 
@@ -114,47 +123,61 @@ export function MidweekServiceForm() {
   async function onSubmit(data: FormValues) {
     setIsSubmitting(true);
     try {
-      // Format the data for Supabase
       const formattedData = {
         ...data,
-        // Ensure date is in the correct format for PostgreSQL
         date: format(data.date, "yyyy-MM-dd"),
-        // time_started and time_ended are already in the correct format for PostgreSQL time
       };
 
-      // Insert data into Supabase
-      const { error } = await supabase
-        .from("midweekservice")
-        .insert([formattedData]);
+      let error;
 
-      // Simulate an error for testing purposes
-      //error = new Error("Simulated Supabase error");
+      if (initialData) {
+        // Update existing record
+        const { error: updateError } = await supabase
+          .from("midweekservice")
+          .update(formattedData)
+          .eq("id", userID);
+        error = updateError;
+      } else {
+        // Insert new record
+        const { error: insertError } = await supabase
+          .from("midweekservice")
+          .insert([formattedData]);
+        error = insertError;
+      }
 
       if (error) throw error;
 
-      toast("Service record created", {
-        description: "The midweek service has been successfully recorded.",
+      toast(initialData ? "Service record updated" : "Service record created", {
+        description: initialData
+          ? "The midweek service has been successfully updated."
+          : "The midweek service has been successfully recorded.",
       });
 
-      // Reset form after successful submission
-      form.reset({
-        title: "",
-        day: "Monday",
-        anchor: "",
-        time_started: "18:00", // Reset to default 6pm
-        time_ended: "19:00", // Reset to default 7pm
-        first_offering: 0,
-        second_offering: 0,
-        third_offering: 0,
-        men: 0,
-        women: 0,
-        girls: 0,
-        boys: 0,
-      });
+      // Only reset form if creating a new record
+      if (!initialData) {
+        form.reset({
+          title: "",
+          day: "Monday",
+          anchor: "",
+          time_started: "18:00",
+          time_ended: "19:00",
+          first_offering: 0,
+          second_offering: 0,
+          third_offering: 0,
+          men: 0,
+          women: 0,
+          girls: 0,
+          boys: 0,
+        });
+      } else {
+        window.location.reload();
+      }
     } catch (error) {
       console.error("Error submitting form:", error);
       toast("Error", {
-        description: "There was an error saving the service record.",
+        description: initialData
+          ? "There was an error updating the service record."
+          : "There was an error saving the service record.",
       });
     } finally {
       setIsSubmitting(false);
@@ -481,7 +504,13 @@ export function MidweekServiceForm() {
           </div>
 
           <Button type="submit" className="w-full" disabled={isSubmitting}>
-            {isSubmitting ? "Saving..." : "Save Service Record"}
+            {isSubmitting
+              ? initialData
+                ? "Updating..."
+                : "Saving..."
+              : initialData
+              ? "Update Service Record"
+              : "Save Service Record"}
           </Button>
         </form>
       </Form>

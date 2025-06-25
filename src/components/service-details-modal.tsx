@@ -66,7 +66,7 @@ function formatCurrency(amount: number) {
 }
 
 export const deleteItem = async (id: string) => {
-  console.log("Deleting item with ID:", id);
+  // console.log("Deleting item with ID:", id);
 
   // toast.success(`Deleted service ID ${id} successfully.`);
   try {

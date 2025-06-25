@@ -11,6 +11,15 @@ import { Pagination } from "./pagination";
 import { Button } from "./ui/button";
 import { Edit, Trash2 } from "lucide-react";
 import { deleteItem } from "./service-details-modal";
+import {
+  Dialog,
+  DialogContent,
+  // DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { MidweekServiceForm } from "@/auth/forms/midweekserviceform";
 
 interface Service {
   id: string;
@@ -76,6 +85,7 @@ export function ServiceTable({
   onPageChange,
   loading = false,
 }: ServiceTableProps) {
+  // console.log("Rendering ServiceTable with services:", services);
   return (
     <div className="bg-white rounded-lg shadow overflow-hidden">
       {/* Desktop View */}
@@ -118,9 +128,26 @@ export function ServiceTable({
                   {formatCurrency(service.total)}
                 </TableCell>
                 <TableCell>
-                  <Button variant="outline">
-                    <Edit />
-                  </Button>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="outline">
+                        <Edit />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="lg:max-w-2xl">
+                      <DialogHeader>
+                        <DialogTitle>Edit Service</DialogTitle>
+                      </DialogHeader>
+                      <MidweekServiceForm
+                        initialData={{
+                          ...service,
+                          date: new Date(service.date),
+                        }}
+                        userID={service.id}
+                      />
+                    </DialogContent>
+                  </Dialog>
+
                   <Button
                     className="ml-2"
                     variant="outline"

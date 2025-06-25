@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Edit2, Eye, Trash2 } from "lucide-react";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { toast } from "sonner";
+import { useState } from "react";
+import { MidweekServiceForm } from "@/auth/forms/midweekserviceform";
 
 interface Service {
   id: string;
@@ -89,7 +91,13 @@ export const deleteItem = async (id: string) => {
   }
 };
 
-function ServiceDetails({ service }: { service: Service }) {
+function ServiceDetails({
+  service,
+  onEditClick,
+}: {
+  service: Service;
+  onEditClick: () => void;
+}) {
   return (
     <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-2">
       {/* Header Section */}
@@ -293,7 +301,7 @@ function ServiceDetails({ service }: { service: Service }) {
             Actions
           </h4>
           <div className="flex justify-center space-x-4">
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={onEditClick}>
               <Edit2 />
               Edit Service
             </Button>
@@ -317,6 +325,7 @@ export function ServiceDetailsModal({
   service,
   variant = "desktop",
 }: ServiceDetailsModalProps) {
+  const [isEditing, setIsEditing] = useState(false);
   const getDialogClasses = () => {
     switch (variant) {
       case "mobile":
@@ -344,6 +353,10 @@ export function ServiceDetailsModal({
     );
   };
 
+  const handleEditClick = () => {
+    setIsEditing(true);
+  };
+
   const getTitle = () => {
     if (variant === "mobile") {
       return (
@@ -355,6 +368,7 @@ export function ServiceDetailsModal({
         </DialogTitle>
       );
     }
+
     return (
       <DialogTitle className="text-xl font-semibold">
         {service.title} - {formatDate(service.date)}
@@ -366,9 +380,18 @@ export function ServiceDetailsModal({
     <Dialog>
       <DialogTrigger asChild>{getTriggerButton()}</DialogTrigger>
       <DialogContent className={getDialogClasses()}>
-        <DialogHeader className="pb-4 border-b">{getTitle()}</DialogHeader>
+        <DialogHeader className="pb-4 border-b">
+          {isEditing ? "Edit Service" : getTitle()}
+        </DialogHeader>
         <div className="overflow-y-auto">
-          <ServiceDetails service={service} />
+          {isEditing ? (
+            <MidweekServiceForm
+              initialData={{ ...service, date: new Date(service.date) }}
+              userID={service.id}
+            />
+          ) : (
+            <ServiceDetails service={service} onEditClick={handleEditClick} />
+          )}
         </div>
       </DialogContent>
     </Dialog>

@@ -28,26 +28,28 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { toast } from "sonner";
-import PreacherAutoComplete from "./searchpreacher";
 
 export const formSchema = z.object({
   date: z.date({
     required_error: "Sermon date is required",
   }),
-  preacherId: z.string().uuid({
-    message: "Please select a valid preacher",
-  }),
+  preacherId: z.string(),
   sermon_exist: z.boolean(),
   sermon_title: z.string().nullable().optional(),
   sermon_text: z.string().nullable().optional(),
   preacher_sign: z.boolean(),
 });
 
-export function SermonForm({
-  preachers = [],
-}: {
-  preachers: { id: string; name: string }[];
-}) {
+type SermonFormProps = {
+  defaultValues?: Partial<z.infer<typeof formSchema>>;
+  userID?: string;
+};
+
+export function SermonForm({ defaultValues, userID }: SermonFormProps) {
+  // if (defaultValues) {
+  //   console.log("Default values provided:", defaultValues);
+  // }
+
   const [isPending, setIsPending] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -56,6 +58,7 @@ export function SermonForm({
       sermon_exist: true,
       preacher_sign: true,
       date: new Date(),
+      ...defaultValues,
     },
   });
 
@@ -64,12 +67,11 @@ export function SermonForm({
   async function onSubmit(formData: z.infer<typeof formSchema>) {
     setIsPending(true);
     try {
-      // If sermon doesn't exist, nullify the sermon fields
       const submissionData = {
         ...formData,
         sermon_title: formData.sermon_exist ? formData.sermon_title : null,
         sermon_text: formData.sermon_exist ? formData.sermon_text : null,
-        created_at: new Date().toISOString(),
+        // created_at: new Date().toISOString(),
       };
 
       const supabase = createClientComponentClient({
@@ -79,9 +81,18 @@ export function SermonForm({
 
       // console.log("Submitting data:", submissionData);
 
-      const { data, error } = await supabase
-        .from("sundaysermon")
-        .insert(submissionData);
+      let response;
+
+      if (defaultValues) {
+        response = await supabase
+          .from("sundaysermon")
+          .update(submissionData)
+          .eq("id", userID);
+      } else {
+        response = await supabase.from("sundaysermon").insert(submissionData);
+      }
+
+      const { data, error } = response;
 
       if (!error || data) {
         toast("Sermon record submitted successfully", {
@@ -100,8 +111,9 @@ export function SermonForm({
           // console.error("Error inserting data:", error);
         }
       }
-
-      form.reset();
+      if (!defaultValues) {
+        form.reset();
+      }
     } catch (error) {
       console.error(error);
       toast("Error", {
@@ -181,8 +193,14 @@ export function SermonForm({
         <FormField
           control={form.control}
           name="preacherId"
-          render={() => (
-            <PreacherAutoComplete form={form} preachers={preachers} />
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Preacher</FormLabel>
+              <FormControl>
+                <Input placeholder="Enter preacher ID" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
           )}
         />
 
@@ -271,7 +289,13 @@ export function SermonForm({
         />
 
         <Button type="submit" disabled={isPending}>
-          {isPending ? "Saving..." : "Save Sermon"}
+          {isPending
+            ? defaultValues
+              ? "Updating"
+              : "Saving..."
+            : defaultValues
+            ? "Update Sermon"
+            : "Save Sermon"}
         </Button>
       </form>
     </Form>

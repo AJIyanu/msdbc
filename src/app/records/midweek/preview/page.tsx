@@ -46,7 +46,7 @@ export default function MidweekServiceTable() {
         setError(null);
 
         // Simulate API delay for demonstration
-        await new Promise((resolve) => setTimeout(resolve, 2000));
+        // await new Promise((resolve) => setTimeout(resolve, 2000));
 
         // Uncomment this when ready to use Supabase with pagination
         const startIndex = (page - 1) * itemsPerPage;

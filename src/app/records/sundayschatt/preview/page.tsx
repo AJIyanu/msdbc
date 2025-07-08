@@ -23,7 +23,6 @@ import {
 } from "@/components/ui/select";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 
-// Initialize Supabase client
 const supabase = createClientComponentClient({
   supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
   supabaseKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,

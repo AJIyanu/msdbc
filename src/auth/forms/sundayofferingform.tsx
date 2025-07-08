@@ -55,15 +55,41 @@ const formSchema = z.object({
     .min(1, "At least one offering is required"),
 });
 
+type PayloadType = {
+  date: Date;
+  amount: number;
+  breakdown: {
+    offeringTitle: string;
+    amount: number;
+  }[];
+};
+
 type FormValues = z.infer<typeof formSchema>;
 
-export function SundayOfferingForm() {
-  // Initialize form with default values
+type SundayOfferingFormProps = {
+  defaultValues?: Partial<PayloadType>;
+  offId?: string;
+};
+
+export function SundayOfferingForm({
+  defaultValues,
+  offId,
+}: SundayOfferingFormProps) {
+  console.log("SundayOfferingForm rendered with defaultValues:", defaultValues);
+
+  // const formCompatibleDefaults = {
+  //   offerings: defaultValues?.breakdown,
+  //   ...defaultValues,
+  // };
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       date: new Date(),
-      offerings: [{ offeringTitle: "General", amount: 0 }],
+      offerings: defaultValues?.breakdown ?? [
+        { offeringTitle: "General", amount: 0 },
+      ],
+      ...defaultValues,
     },
   });
 
@@ -99,7 +125,6 @@ export function SundayOfferingForm() {
     try {
       setIsSubmitting(true);
 
-      // Format data for Supabase
       const breakdown = data.offerings.map((offering) => ({
         offeringTitle: offering.offeringTitle,
         amount: offering.amount,
@@ -110,12 +135,24 @@ export function SundayOfferingForm() {
         0
       );
 
-      // Insert data into Supabase
-      const { error } = await supabase.from("sundayofffering").insert({
+      const payload = {
         date: format(data.date, "yyyy-MM-dd"),
         amount: totalAmount,
         breakdown: breakdown,
-      });
+      };
+
+      let response;
+
+      if (defaultValues && offId) {
+        response = await supabase
+          .from("sundayofffering")
+          .update(payload)
+          .eq("id", offId);
+      } else {
+        response = await supabase.from("sundayofffering").insert(payload);
+      }
+
+      const { error } = response;
 
       if (error) {
         throw new Error(error.message);
@@ -126,10 +163,12 @@ export function SundayOfferingForm() {
       });
 
       // Reset form to default values
-      form.reset({
-        date: new Date(),
-        offerings: [{ offeringTitle: "General", amount: 0 }],
-      });
+      if (!defaultValues) {
+        form.reset({
+          date: new Date(),
+          offerings: [{ offeringTitle: "General", amount: 0 }],
+        });
+      }
     } catch (error) {
       console.error("Error submitting form:", error);
       toast("Error saving offering", {
@@ -141,7 +180,7 @@ export function SundayOfferingForm() {
   };
 
   return (
-    <Card className="w-full max-w-2xl mx-auto">
+    <Card className="w-full max-w-2xl mx-auto lg:mx-0">
       <CardHeader>
         <CardTitle>Sunday Offering</CardTitle>
         <CardDescription>Record the Sunday offering collection</CardDescription>
@@ -256,7 +295,13 @@ export function SundayOfferingForm() {
             </div>
 
             <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? "Saving..." : "Save Offering"}
+              {isSubmitting
+                ? offId
+                  ? "Updating..."
+                  : "Saving..."
+                : offId
+                ? "Update Offering"
+                : "Save Offering"}
             </Button>
           </form>
         </Form>

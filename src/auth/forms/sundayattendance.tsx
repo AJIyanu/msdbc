@@ -48,7 +48,15 @@ const formSchema = z.object({
 });
 type FormValues = z.infer<typeof formSchema>;
 
-export default function SundayAttendanceForm() {
+type SundayAttendanceFormProps = {
+  defaultValues?: Partial<FormValues>;
+  attId?: string;
+};
+
+export default function SundayAttendanceForm({
+  defaultValues,
+  attId,
+}: SundayAttendanceFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const supabase = createClientComponentClient({
     supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -64,6 +72,7 @@ export default function SundayAttendanceForm() {
       girls: 0,
       visitors: 0,
       date: new Date(),
+      ...defaultValues,
     },
   });
 
@@ -78,9 +87,20 @@ export default function SundayAttendanceForm() {
 
       // console.log("Submitting data:", submissionData);
 
-      const { data, error } = await supabase
-        .from("sundayserviceattendance")
-        .insert(submissionData);
+      let response;
+
+      if (defaultValues && attId) {
+        response = await supabase
+          .from("sundayserviceattendance")
+          .update(submissionData)
+          .eq("id", attId);
+      } else {
+        response = await supabase
+          .from("sundayserviceattendance")
+          .insert(submissionData);
+      }
+
+      const { data, error } = response;
 
       if (!error || data) {
         toast("Attendance recorded successfully", {
@@ -99,8 +119,9 @@ export default function SundayAttendanceForm() {
           // console.error("Error inserting data:", error);
         }
       }
-
-      form.reset();
+      if (!defaultValues) {
+        form.reset();
+      }
     } catch (error: unknown | Error) {
       // console.error("Error submitting form:", error);
       toast("Error saving attendance Record", {
@@ -229,7 +250,13 @@ export default function SundayAttendanceForm() {
 
           <div className="flex justify-start">
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Saving..." : "Save Attendance Record"}
+              {isSubmitting
+                ? attId
+                  ? "Updating..."
+                  : "Saving..."
+                : attId
+                ? "Update Attendance Record"
+                : "Save Attendance Record"}
             </Button>
           </div>
         </form>

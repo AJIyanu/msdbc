@@ -11,6 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import VisitorsAttendanceForm from "@/auth/forms/visitorsform";
+import Link from "next/link";
 
 export default function SundayAttendancePage() {
   return (
@@ -41,15 +42,15 @@ export default function SundayAttendancePage() {
       <Separator />
       <div className="max-w-2xl flex flex-col gap-6">
         <h1 className="text-2xl font-bold">Sermon Form</h1>
-        <SermonForm preachers={preacher} />
+        <SermonForm />
+      </div>
+      <div>
+        <Link href="/records/sundayattendance/preview">
+          <Button className="w-2xl mt-4" variant="outline">
+            Preview Attendance Records
+          </Button>
+        </Link>
       </div>
     </div>
   );
 }
-
-const preacher = [
-  {
-    id: "987ac250-837e-41d1-943a-a421439df865",
-    name: "Pastor Iyanu",
-  },
-];

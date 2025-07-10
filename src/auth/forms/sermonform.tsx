@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { date, z } from "zod";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
@@ -43,9 +43,14 @@ export const formSchema = z.object({
 type SermonFormProps = {
   defaultValues?: Partial<z.infer<typeof formSchema>>;
   userID?: string;
+  onSuccess?: () => void;
 };
 
-export function SermonForm({ defaultValues, userID }: SermonFormProps) {
+export function SermonForm({
+  defaultValues,
+  userID,
+  onSuccess,
+}: SermonFormProps) {
   // if (defaultValues) {
   //   console.log("Default values provided:", defaultValues);
   // }
@@ -67,11 +72,13 @@ export function SermonForm({ defaultValues, userID }: SermonFormProps) {
   async function onSubmit(formData: z.infer<typeof formSchema>) {
     setIsPending(true);
     try {
+      console.log(formData);
       const submissionData = {
         ...formData,
         sermon_title: formData.sermon_exist ? formData.sermon_title : null,
         sermon_text: formData.sermon_exist ? formData.sermon_text : null,
-        // created_at: new Date().toISOString(),
+        created_at: new Date().toISOString(),
+        date: formData.date.toISOString().split("T")[0],
       };
 
       const supabase = createClientComponentClient({
@@ -113,6 +120,10 @@ export function SermonForm({ defaultValues, userID }: SermonFormProps) {
       }
       if (!defaultValues) {
         form.reset();
+      }
+
+      if (onSuccess) {
+        onSuccess();
       }
     } catch (error) {
       console.error(error);

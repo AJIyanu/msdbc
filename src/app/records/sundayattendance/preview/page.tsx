@@ -88,7 +88,15 @@ interface ServiceRecord {
 }
 
 // Service Details Component
-function ServiceDetails({ record }: { record: ServiceRecord }) {
+function ServiceDetails({
+  record,
+  refreshMe,
+  serviceDate,
+}: {
+  record: ServiceRecord;
+  refreshMe?: () => void;
+  serviceDate?: string;
+}) {
   const [isEditSermon, setIsEditSermon] = useState(false);
   const [isEditAttendance, setIsEditAttendance] = useState(false);
   const [isEditOffering, setIsEditOffering] = useState(false);
@@ -192,6 +200,7 @@ function ServiceDetails({ record }: { record: ServiceRecord }) {
                 date: new Date(record.sermon.date),
               },
               userID: record.sermon.id,
+              onSuccess: refreshMe,
             })}
           />
         ) : record.sermon ? (
@@ -260,6 +269,7 @@ function ServiceDetails({ record }: { record: ServiceRecord }) {
                 date: new Date(record.attendance.date),
               },
               attId: record.attendance.id,
+              onSuccess: refreshMe,
             })}
           />
         ) : record.attendance ? (
@@ -343,6 +353,7 @@ function ServiceDetails({ record }: { record: ServiceRecord }) {
                 date: new Date(record.offering.date),
               },
               offId: record.offering.id,
+              onSuccess: refreshMe,
             })}
           />
         ) : record.offering ? (
@@ -399,31 +410,31 @@ export default function ChurchDashboard() {
     (2020 + i).toString()
   ).reverse();
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
+  const fetchData = async () => {
+    setIsLoading(true);
 
-      try {
-        const { data, error } = await supabase.functions.invoke(
-          "sunday_sermon_read_function",
-          {
-            body: { year: Number(selectedYear) },
-          }
-        );
-        // await new Promise((resolve) => setTimeout(resolve, 1500));
-
-        if (error) {
-          throw new Error(error.message);
+    try {
+      const { data, error } = await supabase.functions.invoke(
+        "sunday_sermon_read_function",
+        {
+          body: { year: Number(selectedYear) },
         }
+      );
+      // await new Promise((resolve) => setTimeout(resolve, 1500));
 
-        setServiceRecords(data);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      } finally {
-        setIsLoading(false);
+      if (error) {
+        throw new Error(error.message);
       }
-    };
 
+      setServiceRecords(data);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchData();
   }, [selectedYear]);
 
@@ -554,7 +565,12 @@ export default function ChurchDashboard() {
                 <DialogHeader>
                   <DialogTitle>Service Details</DialogTitle>
                 </DialogHeader>
-                {selectedRecord && <ServiceDetails record={selectedRecord} />}
+                {selectedRecord && (
+                  <ServiceDetails
+                    record={selectedRecord}
+                    refreshMe={fetchData}
+                  />
+                )}
               </DialogContent>
             </Dialog>
           </div>
@@ -686,7 +702,11 @@ export default function ChurchDashboard() {
                   </div>
                 ) : selectedRecord ? (
                   <div className="flex-1 overflow-y-auto p-6">
-                    <ServiceDetails record={selectedRecord} />
+                    <ServiceDetails
+                      record={selectedRecord}
+                      refreshMe={fetchData}
+                      serviceDate={selectedRecord.date}
+                    />
                   </div>
                 ) : (
                   <div className="flex-1 flex items-center justify-center">

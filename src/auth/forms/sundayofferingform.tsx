@@ -69,11 +69,13 @@ type FormValues = z.infer<typeof formSchema>;
 type SundayOfferingFormProps = {
   defaultValues?: Partial<PayloadType>;
   offId?: string;
+  onSuccess?: () => void;
 };
 
 export function SundayOfferingForm({
   defaultValues,
   offId,
+  onSuccess,
 }: SundayOfferingFormProps) {
   console.log("SundayOfferingForm rendered with defaultValues:", defaultValues);
 
@@ -168,6 +170,9 @@ export function SundayOfferingForm({
           date: new Date(),
           offerings: [{ offeringTitle: "General", amount: 0 }],
         });
+      }
+      if (onSuccess) {
+        onSuccess();
       }
     } catch (error) {
       console.error("Error submitting form:", error);

@@ -51,11 +51,13 @@ type FormValues = z.infer<typeof formSchema>;
 type SundayAttendanceFormProps = {
   defaultValues?: Partial<FormValues>;
   attId?: string;
+  onSuccess?: () => void;
 };
 
 export default function SundayAttendanceForm({
   defaultValues,
   attId,
+  onSuccess,
 }: SundayAttendanceFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const supabase = createClientComponentClient({
@@ -83,6 +85,7 @@ export default function SundayAttendanceForm({
       const submissionData = {
         ...formData,
         created_at: new Date().toISOString(),
+        date: formData.date.toISOString().split("T")[0],
       };
 
       // console.log("Submitting data:", submissionData);
@@ -121,6 +124,10 @@ export default function SundayAttendanceForm({
       }
       if (!defaultValues) {
         form.reset();
+      }
+
+      if (onSuccess) {
+        onSuccess();
       }
     } catch (error: unknown | Error) {
       // console.error("Error submitting form:", error);

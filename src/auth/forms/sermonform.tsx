@@ -72,7 +72,7 @@ export function SermonForm({
   async function onSubmit(formData: z.infer<typeof formSchema>) {
     setIsPending(true);
     try {
-      console.log(formData);
+      // console.log(formData);
       const submissionData = {
         ...formData,
         sermon_title: formData.sermon_exist ? formData.sermon_title : null,
@@ -301,10 +301,10 @@ export function SermonForm({
 
         <Button type="submit" disabled={isPending}>
           {isPending
-            ? defaultValues
+            ? userID
               ? "Updating"
               : "Saving..."
-            : defaultValues
+            : userID
             ? "Update Sermon"
             : "Save Sermon"}
         </Button>

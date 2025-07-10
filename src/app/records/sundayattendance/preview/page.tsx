@@ -95,7 +95,7 @@ function ServiceDetails({
 }: {
   record: ServiceRecord;
   refreshMe?: () => void;
-  serviceDate?: string;
+  serviceDate: string;
 }) {
   const [isEditSermon, setIsEditSermon] = useState(false);
   const [isEditAttendance, setIsEditAttendance] = useState(false);
@@ -194,11 +194,11 @@ function ServiceDetails({
         </div>
         {isEditSermon ? (
           <SermonForm
+            defaultValues={{
+              ...(record.sermon ?? {}),
+              date: new Date(record.sermon?.date ?? serviceDate),
+            }}
             {...(record.sermon && {
-              defaultValues: {
-                ...record.sermon,
-                date: new Date(record.sermon.date),
-              },
               userID: record.sermon.id,
               onSuccess: refreshMe,
             })}
@@ -263,11 +263,11 @@ function ServiceDetails({
         </div>
         {isEditAttendance ? (
           <SundayAttendanceForm
+            defaultValues={{
+              ...(record.attendance ?? {}),
+              date: new Date(record.attendance?.date ?? serviceDate),
+            }}
             {...(record.attendance && {
-              defaultValues: {
-                ...record.attendance,
-                date: new Date(record.attendance.date),
-              },
               attId: record.attendance.id,
               onSuccess: refreshMe,
             })}
@@ -347,11 +347,11 @@ function ServiceDetails({
         </div>
         {isEditOffering ? (
           <SundayOfferingForm
+            defaultValues={{
+              ...(record.offering ?? {}),
+              date: new Date(record.offering?.date ?? serviceDate),
+            }}
             {...(record.offering && {
-              defaultValues: {
-                ...record.offering,
-                date: new Date(record.offering.date),
-              },
               offId: record.offering.id,
               onSuccess: refreshMe,
             })}
@@ -569,6 +569,7 @@ export default function ChurchDashboard() {
                   <ServiceDetails
                     record={selectedRecord}
                     refreshMe={fetchData}
+                    serviceDate={selectedRecord.date}
                   />
                 )}
               </DialogContent>
